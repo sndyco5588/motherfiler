@@ -1,4 +1,4 @@
-import os
+import os,datetime
 from pathlib import Path
 import json, logging
 
@@ -6,9 +6,10 @@ import json, logging
 class MotherFiler():
 
     def __init__(self) -> None:
+        self.logfilename = str(datetime.date.today()) + '_motherfiler.log'
         logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
         datefmt='%Y-%m-%d:%H:%M:%S',
-        filename='motherfiler.log', 
+        filename=  self.logfilename,
         level=logging.DEBUG)
         logging.info('Starting motherfiler')
 
@@ -37,7 +38,10 @@ class MotherFiler():
                 extension_dict[extension] = os.path.join(root,folder)
         return extension_dict
     
-    def prepare_paths(self, root, extension_dict):
+    def prepare_paths(self, root, structure):
+
+        self.create_destination_folders(root,structure)
+        extension_dict = self.create_extension_dict(root, structure)
         root_contents = os.scandir(Path(root))
         source_and_destination = list()
         for content in root_contents: 
@@ -55,7 +59,7 @@ class MotherFiler():
                 logging.error("error moving",paths[0])
     
     def create_destination_folders(self,root,structure):
-        destination_folders = list()
+
         for folder in structure:
             destination_folder = os.path.join(root,folder)
             if not Path(destination_folder).exists():
@@ -67,8 +71,6 @@ class MotherFiler():
                     self.abend()
             else:
                 logging.info(destination_folder + " exist")
-            destination_folders.append(destination_folder)
-        return destination_folders
 
     def abend(self):
         logging.info("motherfiler encountered an error! Ending the program now")
@@ -76,12 +78,7 @@ class MotherFiler():
 
     def organize_files(self, configFilePath):
         config = self.parse_json_file(self.get_file_content(configFilePath))
-        root,structure = config["root"],config["structure"]
-        
-        self.create_destination_folders(root,structure)
-        extension_dict = self.create_extension_dict(root,structure)
-
-        list_of_paths = self.prepare_paths(root,extension_dict)
+        list_of_paths = self.prepare_paths(config["root"],config["structure"])
         self.move_files(list_of_paths)
 
 if __name__ == '__main__':
