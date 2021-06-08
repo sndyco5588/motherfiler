@@ -59,7 +59,7 @@ class MotherFiler():
             logging.debug(paths[0] + "  -->  " + paths[1])
             shutil.move(paths[0],paths[1])
         except:
-            logging.error("error moving",paths[0])
+            logging.error("error moving" + paths[0])
             
     
     def move_log_file_to_root(self):
@@ -78,7 +78,7 @@ class MotherFiler():
         if not Path(destination_folder).exists():
             try:
                 os.mkdir(destination_folder)
-                logging.debug(destination_folder,"created")
+                logging.debug(destination_folder + "created")
             except:
                 logging.error("cannot create the folder " + destination_folder)
                
