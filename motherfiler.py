@@ -1,4 +1,4 @@
-import os,datetime
+import os,datetime, shutil
 from pathlib import Path
 import json, logging
 
@@ -22,7 +22,6 @@ class MotherFiler():
             file.close()
         except OSError:
             logging.error("Error reading file:",configFilePath)
-            self.end_motherfiler()
         return(content)
 
     def parse_json_file(self, fileContent):
@@ -30,7 +29,7 @@ class MotherFiler():
             return json.loads(fileContent)
         except:
             logging.error("Error deserializing JSON")
-            self.end_motherfiler()
+            
 
     def create_extension_dict(self,stucture):
         extension_dict = dict()
@@ -58,15 +57,17 @@ class MotherFiler():
     def move_file(self, paths):
         try:
             logging.debug(paths[0] + "  -->  " + paths[1])
+            shutil.move(paths[0],paths[1])
         except:
             logging.error("error moving",paths[0])
-            self.end_motherfiler()
+            
     
     def move_log_file_to_root(self):
         destination_folder = os.path.join(self.root_folder,"Logs")
         logging.info("moving Logs to " + destination_folder)
         self.create_destination_folder(destination_folder)
-        self.move_file([self.logfilename,os.path.join(destination_folder,self.logfilename)])
+        logging.shutdown()
+        shutil.move(os.path.abspath(self.logfilename),os.path.join(destination_folder,self.logfilename))
 
     def create_destination_folders(self,structure):
         for folder in structure:
@@ -79,14 +80,13 @@ class MotherFiler():
                 os.mkdir(destination_folder)
                 logging.debug(destination_folder,"created")
             except:
-                logging.error("cannot create the folder")
-                self.end_motherfiler()
+                logging.error("cannot create the folder " + destination_folder)
+               
         else:
             logging.info(destination_folder + " exist")
 
     def end_motherfiler(self):
         self.move_log_file_to_root()
-        logging.info("motherfiler ended")
         quit()
 
     def organize_files(self, configFilePath):
